@@ -1,4 +1,4 @@
-package net.fabricmc.example;
+package net.fabricmc.balanced_mending;
 
 import net.fabricmc.api.ModInitializer;
 import org.slf4j.Logger;

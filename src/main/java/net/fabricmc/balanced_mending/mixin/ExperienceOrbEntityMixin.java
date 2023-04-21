@@ -1,4 +1,4 @@
-package net.fabricmc.example.mixin;
+package net.fabricmc.balanced_mending.mixin;
 
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
@@ -25,7 +25,7 @@ public class ExperienceOrbEntityMixin {
 	// base bonus for wood, multiplied by 2 for each tier up
 	// (wood/gold/fishing_rod/on_a_stick/flint_and_steel,
 	// stone,
-	// iron/shield/elytra/bow/crossbow/shears,
+	// iron/shield/elytra/bow/crossbow/shears/trident,
 	// diamond,
 	// netherite)
 	private int consumeRepairIngredientBonus = 4;
@@ -90,6 +90,10 @@ public class ExperienceOrbEntityMixin {
 			ingredient = Ingredient.ofItems(Items.STRING);
 		}
 
+		if (item instanceof TridentItem) {
+			ingredient = Ingredient.ofItems(Items.PRISMARINE_SHARD);
+		}
+
 		// check if player has repair ingredient
 		if (player.getInventory().containsAny(ingredient)) {
 			return ingredient;
@@ -134,6 +138,8 @@ public class ExperienceOrbEntityMixin {
 		if (ingredient == Ingredient.ofItems(Items.STRING))
 			return bonus;
 		if (ingredient == Ingredient.ofItems(Items.PHANTOM_MEMBRANE))
+			return bonus;
+		if (ingredient == Ingredient.ofItems(Items.PRISMARINE_SHARD))
 			return bonus;
 		bonus *= 2;
 		if (ingredient == Ingredient.ofItems(Items.DIAMOND))
