@@ -8,6 +8,9 @@
   "client": [
     "ExperienceOrbEntityMixin"
   ],
+  "server": [
+    "ExperienceOrbEntityMixin"
+  ],
   "injectors": {
     "defaultRequire": 1
   }
