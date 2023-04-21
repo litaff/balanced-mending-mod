@@ -19,7 +19,7 @@
   "environment": "*",
   "entrypoints": {
     "main": [
-      "net.fabricmc.example.BalancedMending"
+      "net.fabricmc.balanced_mending.BalancedMending"
     ]
   },
   "mixins": [
