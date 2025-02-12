@@ -1,5 +1,9 @@
 package net.fabricmc.balanced_mending.mixin;
 
+import net.minecraft.component.DataComponentTypes;
+import net.minecraft.component.type.ItemEnchantmentsComponent;
+import net.minecraft.component.type.RepairableComponent;
+import net.minecraft.enchantment.Enchantment;
 import net.minecraft.enchantment.EnchantmentHelper;
 import net.minecraft.enchantment.Enchantments;
 import net.minecraft.entity.EquipmentSlot;
@@ -7,13 +11,19 @@ import net.minecraft.entity.ExperienceOrbEntity;
 import net.minecraft.entity.player.PlayerEntity;
 import net.minecraft.item.*;
 import net.minecraft.recipe.Ingredient;
+import net.minecraft.registry.entry.RegistryEntry;
+import net.minecraft.registry.entry.RegistryEntryList;
 import net.minecraft.registry.tag.ItemTags;
+import net.minecraft.server.network.ServerPlayerEntity;
+import net.minecraft.world.World;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
 import org.spongepowered.asm.mixin.injection.Inject;
 import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 
+import java.io.Console;
 import java.util.ArrayList;
+import java.util.Iterator;
 import java.util.List;
 
 @Mixin(ExperienceOrbEntity.class)
@@ -32,7 +42,7 @@ public class ExperienceOrbEntityMixin {
 
 
 	@Inject(at = @At("HEAD"), method = "repairPlayerGears", cancellable = true)
-	private void repairPlayerGears(PlayerEntity player, int amount, CallbackInfoReturnable<Integer> cir) {
+	private void repairPlayerGears(ServerPlayerEntity player, int amount, CallbackInfoReturnable<Integer> cir) {
 		List<ItemStack> itemStacks = getPlayerGear(player);
 
 		for (int i = 0; i < itemStacks.size(); i++) {
@@ -41,7 +51,7 @@ public class ExperienceOrbEntityMixin {
 
 			Ingredient repairIngredient = canRepairItemStack(player, itemStacks.get(i));
 
-			// no repair ingredient -> go to next item
+			// no repair items -> go to next item
 			if (repairIngredient == null) continue;
 
 			amount -= repairItemStack(player, itemStacks.get(i), repairAmount, repairIngredient);
@@ -54,56 +64,66 @@ public class ExperienceOrbEntityMixin {
 
 	private Ingredient canRepairItemStack(PlayerEntity player, ItemStack itemStack) {
 		Item item = itemStack.getItem();
-		Ingredient ingredient = null;
 
-		// check material for tools
-		if (item instanceof ToolItem) {
-			ingredient = ((ToolItem) item).getMaterial().getRepairIngredient();
+		RepairableComponent repairable = item.getComponents().get(DataComponentTypes.REPAIRABLE);
+		if (repairable == null) return null;
+
+		RegistryEntryList<Item> items = repairable.items();
+		if (items == null) return null;
+
+		for (var itemEntry : items){
+			System.out.println(itemEntry.getIdAsString());
+		}
+		// TODO: This is a good direction but some items are not repairable through the anvil. Meaning that it needs a special case.
+
+		/*// check material for tools
+		if (item instanceof MiningToolItem) {
+			items = ((MiningToolItem) item).getComponents().get(DataComponentTypes.REPAIRABLE)..getRepairIngredient();
 		}
 
 		// check material for armor
 		if (item instanceof ArmorItem) {
-			ingredient = ((ArmorItem) item).getMaterial().getRepairIngredient();
+			items = ((ArmorItem) item).getMaterial().getRepairIngredient();
 		}
 
-		// get ingredient for shields
+		// get items for shields
 		if (item instanceof ShieldItem) {
-			ingredient = Ingredient.fromTag(ItemTags.PLANKS);
+			items = Ingredient.fromTag(ItemTags.PLANKS);
 		}
 
-		// get ingredient for elytra
+		// get items for elytra
 		if (item instanceof ElytraItem) {
-			ingredient = Ingredient.ofItems(Items.PHANTOM_MEMBRANE);
+			items = Ingredient.ofItems(Items.PHANTOM_MEMBRANE);
 		}
 
-		// get ingredient for shears
+		// get items for shears
 		if (item instanceof ShearsItem) {
-			ingredient = Ingredient.ofItems(Items.IRON_INGOT);
+			items = Ingredient.ofItems(Items.IRON_INGOT);
 		}
 
-		// get ingredient for flint and steel
+		// get items for flint and steel
 		if (item instanceof FlintAndSteelItem) {
-			ingredient = Ingredient.ofItems(Items.FLINT);
+			items = Ingredient.ofItems(Items.FLINT);
 		}
 
 		if (item instanceof RangedWeaponItem || item instanceof FishingRodItem || item instanceof OnAStickItem) {
-			ingredient = Ingredient.ofItems(Items.STRING);
+			items = Ingredient.ofItems(Items.STRING);
 		}
 
 		if (item instanceof TridentItem) {
-			ingredient = Ingredient.ofItems(Items.PRISMARINE_SHARD);
+			items = Ingredient.ofItems(Items.PRISMARINE_SHARD);
 		}
 
-		// check if player has repair ingredient
-		if (player.getInventory().containsAny(ingredient)) {
-			return ingredient;
-		}
+		// check if player has repair items
+		if (player.getInventory().containsAny(items)) {
+			return items;
+		}*/
 
 		return null;
 	}
 
 	private int repairItemStack(PlayerEntity player, ItemStack itemStack, int repairAmount, Ingredient repairIngredient) {
-		// getMatchingStacks()[0] might be bad
+		/*// getMatchingStacks()[0] might be bad
 		repairIngredient.getMatchingStacks()[0].getRarity();
 		if (Math.random() * 100 < consumeRepairIngredientChance * repairAmount) {
 			player.getInventory().removeStack(
@@ -112,14 +132,14 @@ public class ExperienceOrbEntityMixin {
 			repairAmount *= getRepairAmountBonusFromIngredient(repairIngredient);
 		}
 		repairAmount = Math.min(itemStack.getDamage(), repairAmount); // don't repair over limit
-		itemStack.setDamage(itemStack.getDamage() - repairAmount);
+		itemStack.setDamage(itemStack.getDamage() - repairAmount);*/
 		return getMendingRepairCost(repairAmount);
 	}
 
 	private int getRepairAmountBonusFromIngredient(Ingredient ingredient) {
 		int bonus = consumeRepairIngredientBonus;
 
-		if (ingredient == Ingredient.fromTag(ItemTags.PLANKS))
+		/*if (ingredient == Ingredient.fromTag(ItemTags.PLANKS))
 			return bonus;
 		if (ingredient == Ingredient.ofItems(Items.GOLD_INGOT))
 			return bonus;
@@ -146,7 +166,7 @@ public class ExperienceOrbEntityMixin {
 			return bonus;
 		bonus *= 2;
 		if (ingredient == Ingredient.ofItems(Items.NETHERITE_INGOT))
-			return bonus;
+			return bonus;*/
 		return bonus;
 	}
 
@@ -183,7 +203,17 @@ public class ExperienceOrbEntityMixin {
 		return itemStacks;
 	}
 
-	private boolean isItemStackRepairable(ItemStack itemStack) {
-		return itemStack != null && EnchantmentHelper.getLevel(Enchantments.MENDING, itemStack) > 0 && itemStack.isDamaged();
+	private boolean isItemStackRepairable(ItemStack stack) {
+		if (stack == null) return false;
+
+		ItemEnchantmentsComponent itemEnchantmentsComponent = (ItemEnchantmentsComponent)stack.getOrDefault(DataComponentTypes.ENCHANTMENTS, ItemEnchantmentsComponent.DEFAULT);
+		var entries = itemEnchantmentsComponent.getEnchantmentEntries();
+
+		for (var entry : entries){
+			if (entry.getKey().matchesKey(Enchantments.MENDING)) {
+				return stack.isDamaged();
+			}
+		}
+		return false;
 	}
 }

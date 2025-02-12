@@ -1,13 +1,14 @@
-import com.modrinth.minotaur.dependencies.ModDependency
-
 plugins {
-	id 'fabric-loom' version '1.1-SNAPSHOT'
+	id 'fabric-loom' version '1.9-SNAPSHOT'
 	id 'maven-publish'
-	id "com.modrinth.minotaur" version "2.+"
 }
 
 version = project.mod_version
 group = project.maven_group
+
+base {
+	archivesName = project.archives_base_name
+}
 
 repositories {
 	// Add repositories to retrieve artifacts from in here.
@@ -17,18 +18,16 @@ repositories {
 	// for more information about repositories.
 }
 
-modrinth {
-	token = System.getenv('MODRINTH_TOKEN') // Please use an environment variable for this! The default is `$MODRINTH_TOKEN`.
-	projectId = 'Rojiy8xL' // The ID of your Modrinth project. Slugs will not work.
-	versionNumber = mod_version // The (preferably SemVer) version of the mod. If not specified, it'll use the `version` declaration
-	versionType = 'beta' // The version title. If not specified, it'll use the version number
-	versionName = 'Balanced Mending'
-	uploadFile = remapJar // Tells Minotaur to use the remapped jar
-	gameVersions = ['1.19', '1.19.1', '1.19.2', '1.19.3', '1.19.4'] // An array of game versions the version supports
-	loaders = ['fabric'] // Self-explanatory.
-	dependencies = [
-			new ModDependency('P7dR8mSH', 'required') // Creates a new required dependency on Fabric API
-	]
+loom {
+	splitEnvironmentSourceSets()
+
+	mods {
+		"balanced-mending" {
+			sourceSet sourceSets.main
+			sourceSet sourceSets.client
+		}
+	}
+
 }
 
 dependencies {
@@ -40,14 +39,6 @@ dependencies {
 	// Fabric API. This is technically optional, but you probably want it anyway.
 	modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
-	// Uncomment the following line to enable the deprecated Fabric API modules. 
-	// These are included in the Fabric API production distribution and allow you to update your mod to the latest modules at a later more convenient time.
-
-	// modImplementation "net.fabricmc.fabric-api:fabric-api-deprecated:${project.fabric_version}"
-}
-
-base {
-	archivesName = project.archives_base_name
 }
 
 processResources {
@@ -59,8 +50,7 @@ processResources {
 }
 
 tasks.withType(JavaCompile).configureEach {
-	// Minecraft 1.18 (1.18-pre2) upwards uses Java 17.
-	it.options.release = 17
+	it.options.release = 21
 }
 
 java {
@@ -69,20 +59,21 @@ java {
 	// If you remove this line, sources will not be generated.
 	withSourcesJar()
 
-	sourceCompatibility = JavaVersion.VERSION_17
-	targetCompatibility = JavaVersion.VERSION_17
+	sourceCompatibility = JavaVersion.VERSION_21
+	targetCompatibility = JavaVersion.VERSION_21
 }
 
 jar {
 	from("LICENSE") {
-		rename { "${it}_${base.archivesName.get()}"}
+		rename { "${it}_${project.base.archivesName.get()}"}
 	}
 }
 
 // configure the maven publication
 publishing {
 	publications {
-		mavenJava(MavenPublication) {
+		create("mavenJava", MavenPublication) {
+			artifactId = project.archives_base_name
 			from components.java
 		}
 	}
