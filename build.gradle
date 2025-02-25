@@ -1,6 +1,7 @@
 plugins {
 	id 'fabric-loom' version '1.9-SNAPSHOT'
 	id 'maven-publish'
+	id "com.modrinth.minotaur" version "2.+"
 }
 
 version = project.mod_version
@@ -85,4 +86,19 @@ publishing {
 		// The repositories here will be used for publishing your artifact, not for
 		// retrieving dependencies.
 	}
+}
+
+modrinth {
+	token = System.getenv("MODRINTH_TOKEN")
+	projectId = "Rojiy8xL"
+	versionNumber = "1.1.0"
+	versionName = "Balanced Mending"
+	versionType = "release"
+	uploadFile = remapJar
+	gameVersions = ["1.21.4"]
+	loaders = ["fabric"]
+	dependencies {
+		required.project "fabric-api"
+	}
+	syncBodyFrom = rootProject.file("README.md").text
 }
