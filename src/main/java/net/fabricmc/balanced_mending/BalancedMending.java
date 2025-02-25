@@ -1,6 +1,8 @@
 package net.fabricmc.balanced_mending;
 
 import net.fabricmc.api.ModInitializer;
+import net.fabricmc.balanced_mending.config.Config;
+import net.fabricmc.balanced_mending.debug.DebugCommands;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -16,6 +18,8 @@ public class BalancedMending implements ModInitializer {
 		// However, some things (like resources) may still be uninitialized.
 		// Proceed with mild caution.
 
+		Config.load();
+		DebugCommands.registerCommands();
 		LOGGER.info("Balanced Mending loaded");
 	}
 }
