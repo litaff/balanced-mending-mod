@@ -91,7 +91,7 @@ publishing {
 modrinth {
 	token = System.getenv("MODRINTH_TOKEN")
 	projectId = "Rojiy8xL"
-	versionNumber = "1.1.0"
+	versionNumber = "${version}"
 	versionName = "Balanced Mending"
 	versionType = "release"
 	uploadFile = remapJar
@@ -101,4 +101,5 @@ modrinth {
 		required.project "fabric-api"
 	}
 	syncBodyFrom = rootProject.file("README.md").text
+	changelog = "Changed loader version dependency."
 }
